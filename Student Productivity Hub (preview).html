@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Productivity Hub</title>
+  <!-- Google Fonts: Fraunces (headings) + Outfit (body). Fallbacks are set in style.css -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+/* ===== DESIGN TOKENS (colour palette, radius, shadow) ===== */
+:root {
+  --lav-50: #faf8ff;
+  --lav-100: #f1ecff;
+  --lav-200: #e0d6ff;
+  --purple: #8b6fd6;
+  --purple-dark: #6a4fb8;
+  --ink: #2e2552;
+  --muted: #7a7299;
+  --white: #ffffff;
+  --radius: 22px;
+  --shadow: 0 10px 30px rgba(139, 111, 214, 0.15);
+  --shadow-hover: 0 16px 40px rgba(139, 111, 214, 0.25);
+}
+
+/* ===== BASE ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  font-family: 'Outfit', 'Segoe UI', sans-serif;
+  background: linear-gradient(180deg, var(--lav-50), var(--lav-100));
+  color: var(--ink);
+  line-height: 1.6;
+}
+h1, h2, .logo, .ring-label strong {
+  font-family: 'Fraunces', Georgia, serif;
+}
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 6vw;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--lav-200);
+}
+.logo { font-size: 1.5rem; font-weight: 700; }
+.logo span { color: var(--purple); }
+.nav-links { display: flex; gap: 6px; }
+.nav-links a {
+  padding: 8px 16px; border-radius: 999px; font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-links a:hover { background: var(--lav-100); color: var(--purple-dark); }
+.nav-toggle {
+  display: none; background: none; border: none;
+  font-size: 1.6rem; color: var(--ink); cursor: pointer;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-block; padding: 12px 26px; border-radius: 999px;
+  border: 2px solid var(--purple); font: 600 1rem 'Outfit', sans-serif;
+  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--purple); color: var(--white); }
+.btn-primary:hover { background: var(--purple-dark); border-color: var(--purple-dark); }
+.btn-ghost { background: var(--white); color: var(--purple-dark); }
+
+/* ===== CARDS & SECTIONS ===== */
+.card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 28px; box-shadow: var(--shadow);
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+.section { max-width: 900px; margin: 0 auto; padding: 56px 6vw 8px; }
+.section h2 { font-size: 2rem; margin-bottom: 20px; }
+
+/* ===== HERO ===== */
+.hero {
+  max-width: 1100px; margin: 0 auto; padding: 80px 6vw 40px;
+  display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: center;
+}
+.hero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.15; margin-bottom: 18px; }
+.hero p { color: var(--muted); font-size: 1.15rem; max-width: 46ch; margin-bottom: 28px; }
+.hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+.hero-card { position: relative; max-width: 300px; justify-self: center; width: 100%; }
+
+/* ===== PROGRESS RINGS (shared by hero and timer) ===== */
+.ring { width: 100%; transform: rotate(-90deg); }
+.ring-bg, .ring-fg { fill: none; stroke-width: 14; }
+.ring-bg { stroke: var(--lav-100); }
+.ring-fg {
+  stroke: var(--purple); stroke-linecap: round;
+  stroke-dasharray: 565.49; stroke-dashoffset: 565.49; /* 2 * PI * 90 */
+  transition: stroke-dashoffset 0.5s ease;
+}
+.ring-label {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.ring-label strong { font-size: 2.6rem; }
+.ring-label span { color: var(--muted); font-size: 0.95rem; }
+
+/* ===== STATS & BAR ===== */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 18px; }
+.stat { text-align: center; }
+.stat strong { display: block; font: 700 2.2rem 'Fraunces', Georgia, serif; color: var(--purple-dark); }
+.stat span { color: var(--muted); }
+.bar-head { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 500; }
+.bar { height: 14px; background: var(--lav-100); border-radius: 999px; overflow: hidden; }
+.bar-fill {
+  height: 100%; width: 0; border-radius: 999px;
+  background: linear-gradient(90deg, #b9a4f5, var(--purple));
+  transition: width 0.6s ease;
+}
+
+/* ===== FORMS & LISTS (tasks and goals) ===== */
+.add-form { display: flex; gap: 12px; margin-bottom: 18px; }
+.add-form input, #customMin {
+  flex: 1; padding: 12px 18px; border-radius: 999px;
+  border: 2px solid var(--lav-200); background: var(--lav-50);
+  font: 1rem 'Outfit', sans-serif; color: var(--ink);
+  transition: border-color 0.2s;
+}
+.add-form input:focus, #customMin:focus { outline: none; border-color: var(--purple); }
+.list { list-style: none; display: grid; gap: 10px; }
+.list li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: var(--lav-50); border-radius: 14px;
+  animation: pop 0.3s ease; transition: background 0.2s;
+}
+.list li:hover { background: var(--lav-100); }
+.list input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--purple); cursor: pointer; }
+.list .text { flex: 1; word-break: break-word; }
+.list li.done .text { text-decoration: line-through; color: var(--muted); }
+.del {
+  background: none; border: none; font-size: 1.3rem; color: var(--muted);
+  cursor: pointer; border-radius: 50%; width: 32px; height: 32px;
+  transition: background 0.2s, color 0.2s;
+}
+.del:hover { background: #ffe3ea; color: #d64570; }
+.empty, .note { color: var(--muted); text-align: center; margin-top: 8px; }
+.note { font-size: 0.85rem; }
+@keyframes pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+/* ===== TIMER ===== */
+.timer-card { display: grid; grid-template-columns: 240px 1fr; gap: 36px; align-items: center; }
+.timer-ring { position: relative; }
+.timer-ring .ring-label strong { font-size: 2.8rem; font-variant-numeric: tabular-nums; }
+.presets { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+.chip {
+  padding: 8px 18px; border-radius: 999px; border: 2px solid var(--lav-200);
+  background: var(--white); font: 500 0.95rem 'Outfit', sans-serif; color: var(--ink);
+  cursor: pointer; transition: all 0.2s;
+}
+.chip:hover { border-color: var(--purple); }
+.chip.active { background: var(--purple); border-color: var(--purple); color: var(--white); }
+#customMin { flex: 0 0 110px; padding: 8px 14px; }
+.timer-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ===== QUOTES ===== */
+.quote-card { text-align: center; padding: 40px 28px; background: linear-gradient(135deg, var(--white), var(--lav-100)); }
+blockquote { font: 600 1.6rem/1.4 'Fraunces', Georgia, serif; max-width: 30ch; margin: 0 auto 12px; transition: opacity 0.3s; }
+cite { display: block; color: var(--muted); margin-bottom: 24px; font-style: normal; }
+.fade { opacity: 0; }
+
+/* ===== FOOTER ===== */
+.footer { margin-top: 80px; padding: 40px 6vw 24px; background: var(--white); border-top: 1px solid var(--lav-200); border-radius: 36px 36px 0 0; }
+.footer-inner { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.footer p { color: var(--muted); }
+.footer-links { display: flex; gap: 20px; align-items: flex-start; }
+.footer-links a:hover { color: var(--purple); }
+.copy { text-align: center; margin-top: 28px; font-size: 0.9rem; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 760px) {
+  .nav-toggle { display: block; }
+  .nav-links {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; padding: 12px 6vw 18px; background: var(--white);
+    border-bottom: 1px solid var(--lav-200);
+  }
+  .nav-links.open { display: flex; }
+  .hero { grid-template-columns: 1fr; padding-top: 48px; }
+  .stats { grid-template-columns: 1fr; }
+  .timer-card { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .timer-ring { width: 220px; }
+  .presets, .timer-buttons { justify-content: center; }
+  .add-form { flex-direction: column; }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- ===== NAVIGATION BAR ===== -->
+  <header class="navbar">
+    <a href="#home" class="logo">Study<span>Hub</span></a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+    <nav id="navLinks" class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#progress">Progress</a>
+      <a href="#tasks">Tasks</a>
+      <a href="#timer">Timer</a>
+      <a href="#goals">Goals</a>
+      <a href="#quotes">Quotes</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ===== LANDING / HERO ===== -->
+    <section id="home" class="hero">
+      <div class="hero-text">
+        <h1>Welcome back. Let's make today a focused one.</h1>
+        <p>Plan your tasks, run a study timer, set daily goals and watch your progress grow, all in one calm place.</p>
+        <div class="hero-actions">
+          <a href="#tasks" class="btn btn-primary">Add a task</a>
+          <a href="#timer" class="btn btn-ghost">Start studying</a>
+        </div>
+      </div>
+      <!-- Live progress ring (updated by script.js) -->
+      <div class="hero-card card">
+        <svg viewBox="0 0 200 200" class="ring" aria-hidden="true">
+          <circle class="ring-bg" cx="100" cy="100" r="90"/>
+          <circle class="ring-fg" id="heroRing" cx="100" cy="100" r="90"/>
+        </svg>
+        <div class="ring-label"><strong id="heroPercent">0%</strong><span>tasks done</span></div>
+      </div>
+    </section>
+
+    <!-- ===== PROGRESS TRACKER ===== -->
+    <section id="progress" class="section">
+      <h2>Your progress</h2>
+      <div class="stats">
+        <div class="card stat"><strong id="statTotal">0</strong><span>Total tasks</span></div>
+        <div class="card stat"><strong id="statDone">0</strong><span>Completed</span></div>
+        <div class="card stat"><strong id="statGoals">0/0</strong><span>Goals met today</span></div>
+      </div>
+      <div class="card">
+        <div class="bar-head"><span>Task completion</span><span id="barPercent">0%</span></div>
+        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== TO-DO LIST ===== -->
+    <section id="tasks" class="section">
+      <h2>To-do list</h2>
+      <div class="card">
+        <form class="add-form" id="taskForm">
+          <input type="text" id="taskInput" placeholder="e.g. Finish physics assignment" maxlength="80" required aria-label="New task">
+          <button type="submit" class="btn btn-primary">Add task</button>
+        </form>
+        <ul class="list" id="taskList"></ul>
+        <p class="empty" id="taskEmpty">No tasks yet. Add your first one above.</p>
+      </div>
+    </section>
+
+    <!-- ===== STUDY TIMER ===== -->
+    <section id="timer" class="section">
+      <h2>Study timer</h2>
+      <div class="card timer-card">
+        <div class="timer-ring">
+          <svg viewBox="0 0 200 200" class="ring" aria-hidden="true">
+            <circle class="ring-bg" cx="100" cy="100" r="90"/>
+            <circle class="ring-fg" id="timerRing" cx="100" cy="100" r="90"/>
+          </svg>
+          <div class="ring-label"><strong id="timerDisplay">25:00</strong><span id="timerStatus">Ready</span></div>
+        </div>
+        <div class="timer-side">
+          <div class="presets">
+            <button class="chip active" data-min="25">25 min</button>
+            <button class="chip" data-min="45">45 min</button>
+            <button class="chip" data-min="60">60 min</button>
+            <input type="number" id="customMin" min="1" max="180" placeholder="Custom" aria-label="Custom minutes">
+          </div>
+          <div class="timer-buttons">
+            <button class="btn btn-primary" id="startBtn">Start</button>
+            <button class="btn btn-ghost" id="pauseBtn">Pause</button>
+            <button class="btn btn-ghost" id="resetBtn">Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DAILY STUDY GOALS ===== -->
+    <section id="goals" class="section">
+      <h2>Daily study goals</h2>
+      <div class="card">
+        <form class="add-form" id="goalForm">
+          <input type="text" id="goalInput" placeholder="e.g. Revise 2 chapters of Maths" maxlength="80" required aria-label="New goal">
+          <button type="submit" class="btn btn-primary">Add goal</button>
+        </form>
+        <ul class="list" id="goalList"></ul>
+        <p class="empty" id="goalEmpty">No goals for today. Set one to stay on track.</p>
+        <p class="note">Goal ticks reset automatically every new day.</p>
+      </div>
+    </section>
+
+    <!-- ===== MOTIVATIONAL QUOTES ===== -->
+    <section id="quotes" class="section">
+      <h2>A little motivation</h2>
+      <div class="card quote-card">
+        <blockquote id="quoteText"></blockquote>
+        <cite id="quoteAuthor"></cite>
+        <button class="btn btn-primary" id="quoteBtn">New quote</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a href="#home" class="logo">Study<span>Hub</span></a>
+        <p>Small steps, every day. Built for students.</p>
+      </div>
+      <nav class="footer-links">
+        <a href="#tasks">Tasks</a>
+        <a href="#timer">Timer</a>
+        <a href="#goals">Goals</a>
+        <a href="#quotes">Quotes</a>
+      </nav>
+    </div>
+    <p class="copy">&copy; <span id="year"></span> Student Productivity Hub. All rights reserved.</p>
+  </footer>
+
+  <script>
+/* =========================================================
+   Student Productivity Hub - script.js
+   Features: tasks, goals, progress tracker, timer, quotes
+   Data is saved in localStorage so it survives page reloads.
+   ========================================================= */
+
+// ---------- Helpers ----------
+const $ = (id) => document.getElementById(id);
+const RING_LENGTH = 565.49; // circumference of the SVG ring (2 * PI * 90)
+
+// Read a saved array from localStorage (returns [] if nothing is saved)
+function load(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || []; }
+  catch { return []; }
+}
+function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+// Build one list item (used by both tasks and goals)
+function buildItem(item, onToggle, onDelete) {
+  const li = document.createElement('li');
+  if (item.done) li.classList.add('done');
+
+  const box = document.createElement('input');
+  box.type = 'checkbox';
+  box.checked = item.done;
+  box.setAttribute('aria-label', 'Mark as complete');
+  box.addEventListener('change', onToggle);
+
+  const text = document.createElement('span');
+  text.className = 'text';
+  text.textContent = item.text; // textContent keeps user input safe from HTML injection
+
+  const del = document.createElement('button');
+  del.className = 'del';
+  del.innerHTML = '&times;';
+  del.setAttribute('aria-label', 'Delete');
+  del.addEventListener('click', onDelete);
+
+  li.append(box, text, del);
+  return li;
+}
+
+// ---------- Mobile navigation ----------
+const navToggle = $('navToggle');
+const navLinks = $('navLinks');
+navToggle.addEventListener('click', () => {
+  const open = navLinks.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', open);
+});
+// Close the menu after choosing a link
+navLinks.addEventListener('click', () => navLinks.classList.remove('open'));
+
+// ---------- To-do list ----------
+let tasks = load('hub-tasks');
+
+function renderTasks() {
+  const list = $('taskList');
+  list.innerHTML = '';
+  tasks.forEach((task, i) => {
+    list.appendChild(buildItem(task,
+      () => { task.done = !task.done; save('hub-tasks', tasks); renderTasks(); },
+      () => { tasks.splice(i, 1); save('hub-tasks', tasks); renderTasks(); }
+    ));
+  });
+  $('taskEmpty').style.display = tasks.length ? 'none' : 'block';
+  updateProgress();
+}
+
+$('taskForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const value = $('taskInput').value.trim();
+  if (!value) return;
+  tasks.push({ text: value, done: false });
+  save('hub-tasks', tasks);
+  $('taskInput').value = '';
+  renderTasks();
+});
+
+// ---------- Daily study goals ----------
+let goals = load('hub-goals');
+
+// Goals are "daily": if the saved date is not today, untick everything
+const today = new Date().toDateString();
+if (localStorage.getItem('hub-goals-date') !== today) {
+  goals.forEach((g) => (g.done = false));
+  save('hub-goals', goals);
+  localStorage.setItem('hub-goals-date', today);
+}
+
+function renderGoals() {
+  const list = $('goalList');
+  list.innerHTML = '';
+  goals.forEach((goal, i) => {
+    list.appendChild(buildItem(goal,
+      () => { goal.done = !goal.done; save('hub-goals', goals); renderGoals(); },
+      () => { goals.splice(i, 1); save('hub-goals', goals); renderGoals(); }
+    ));
+  });
+  $('goalEmpty').style.display = goals.length ? 'none' : 'block';
+  updateProgress();
+}
+
+$('goalForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const value = $('goalInput').value.trim();
+  if (!value) return;
+  goals.push({ text: value, done: false });
+  save('hub-goals', goals);
+  $('goalInput').value = '';
+  renderGoals();
+});
+
+// ---------- Progress tracker ----------
+function updateProgress() {
+  const total = tasks.length;
+  const done = tasks.filter((t) => t.done).length;
+  const goalsDone = goals.filter((g) => g.done).length;
+  const percent = total ? Math.round((done / total) * 100) : 0;
+
+  $('statTotal').textContent = total;
+  $('statDone').textContent = done;
+  $('statGoals').textContent = `${goalsDone}/${goals.length}`;
+  $('barPercent').textContent = percent + '%';
+  $('barFill').style.width = percent + '%';
+  $('heroPercent').textContent = percent + '%';
+  $('heroRing').style.strokeDashoffset = RING_LENGTH * (1 - percent / 100);
+}
+
+// ---------- Study timer ----------
+let totalSeconds = 25 * 60;   // chosen session length
+let remaining = totalSeconds; // seconds left
+let endTime = 0;              // timestamp when the timer should finish
+let intervalId = null;        // holds the running interval
+
+function drawTimer() {
+  const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+  const s = String(remaining % 60).padStart(2, '0');
+  $('timerDisplay').textContent = `${m}:${s}`;
+  // The ring empties as time runs out
+  $('timerRing').style.strokeDashoffset = RING_LENGTH * (1 - remaining / totalSeconds);
+  document.title = intervalId ? `${m}:${s} - Study Hub` : 'Student Productivity Hub';
+}
+
+function startTimer() {
+  if (intervalId || remaining <= 0) return; // already running
+  endTime = Date.now() + remaining * 1000;
+  $('timerStatus').textContent = 'Focusing...';
+  intervalId = setInterval(() => {
+    // Using the clock (not a counter) keeps the timer accurate even in background tabs
+    remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    drawTimer();
+    if (remaining === 0) {
+      stopInterval();
+      $('timerStatus').textContent = 'Session complete!';
+      document.title = 'Session complete - Study Hub';
+      alert('Great work! Your study session is complete. Take a short break.');
+    }
+  }, 250);
+}
+
+function stopInterval() { clearInterval(intervalId); intervalId = null; }
+
+function pauseTimer() {
+  if (!intervalId) return;
+  stopInterval();
+  $('timerStatus').textContent = 'Paused';
+  drawTimer();
+}
+
+function resetTimer() {
+  stopInterval();
+  remaining = totalSeconds;
+  $('timerStatus').textContent = 'Ready';
+  drawTimer();
+}
+
+// Set a new session length (in minutes) and reset
+function setDuration(minutes) {
+  totalSeconds = minutes * 60;
+  resetTimer();
+}
+
+$('startBtn').addEventListener('click', startTimer);
+$('pauseBtn').addEventListener('click', pauseTimer);
+$('resetBtn').addEventListener('click', resetTimer);
+
+// Preset buttons (25 / 45 / 60 minutes)
+document.querySelectorAll('.chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
+    chip.classList.add('active');
+    $('customMin').value = '';
+    setDuration(Number(chip.dataset.min));
+  });
+});
+
+// Custom minutes input (1 - 180)
+$('customMin').addEventListener('input', (e) => {
+  const mins = Math.min(180, Math.floor(Number(e.target.value)));
+  if (mins >= 1) {
+    document.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
+    setDuration(mins);
+  }
+});
+
+// ---------- Motivational quotes ----------
+const quotes = [
+  { text: 'The secret of getting ahead is getting started.', author: 'Mark Twain' },
+  { text: 'It always seems impossible until it is done.', author: 'Nelson Mandela' },
+  { text: 'Success is the sum of small efforts, repeated day in and day out.', author: 'Robert Collier' },
+  { text: 'Education is the passport to the future.', author: 'Malcolm X' },
+  { text: 'The expert in anything was once a beginner.', author: 'Helen Hayes' },
+  { text: 'Dream big, start small, but most of all, start.', author: 'Simon Sinek' },
+  { text: 'You do not have to be great to start, but you have to start to be great.', author: 'Zig Ziglar' },
+  { text: 'Believe you can and you are halfway there.', author: 'Theodore Roosevelt' }
+];
+let quoteIndex = Math.floor(Math.random() * quotes.length);
+
+function showQuote() {
+  const text = $('quoteText');
+  text.classList.add('fade'); // fade out, swap text, fade back in
+  setTimeout(() => {
+    const q = quotes[quoteIndex];
+    text.textContent = `\u201C${q.text}\u201D`;
+    $('quoteAuthor').textContent = q.author;
+    text.classList.remove('fade');
+  }, 250);
+}
+
+$('quoteBtn').addEventListener('click', () => {
+  quoteIndex = (quoteIndex + 1) % quotes.length; // always shows a different quote
+  showQuote();
+});
+
+// ---------- Start-up ----------
+$('year').textContent = new Date().getFullYear();
+renderTasks();
+renderGoals();
+drawTimer();
+showQuote();
+
+</script>
+</body>
+</html>
